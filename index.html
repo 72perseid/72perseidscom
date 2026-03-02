@@ -196,7 +196,23 @@
     .product-card:hover { border-color: rgba(45,212,191,0.35); background: var(--bg3); }
     .product-card:hover::before { opacity: 0.5; }
 
-    .product-emoji { font-size: 36px; margin-bottom: 16px; display: block; }
+    .product-emoji {
+      font-size: 36px;
+      margin-bottom: 16px;
+      display: block;
+      line-height: 1;
+    }
+    .product-icon {
+      width: 48px;
+      height: 48px;
+      display: block;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid rgba(45,212,191,0.12);
+      background: rgba(45,212,191,0.04);
+      padding: 6px;
+    }
     .product-name {
       font-family: 'Cormorant Garamond', serif;
       font-size: 32px; font-weight: 700;
@@ -233,6 +249,88 @@
     .product-card:hover .product-arrow {
       background: var(--accent-glow);
       transform: translate(2px, -2px);
+    }
+
+    .idea-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .idea-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px 28px;
+      min-height: 100%;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .idea-card:hover {
+      border-color: rgba(45,212,191,0.28);
+      background: var(--bg3);
+    }
+    .idea-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .idea-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+    }
+    .idea-card-label {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(45,212,191,0.2);
+      border-radius: 100px;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+    .idea-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .idea-item {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: rgba(45,212,191,0.03);
+      border: 1px solid rgba(45,212,191,0.08);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .idea-item:hover {
+      border-color: rgba(45,212,191,0.24);
+      background: rgba(45,212,191,0.05);
+    }
+    .idea-item-name {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .idea-item p {
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+    .idea-note {
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--muted);
+    }
+    .idea-note strong {
+      color: var(--text);
+      font-weight: 400;
     }
 
     /* MANIFESTO / PHILOSOPHY */
@@ -349,6 +447,7 @@
     @media (max-width: 680px) {
       .product-card { grid-template-columns: 1fr; padding: 28px 24px; }
       .product-cta { flex-direction: row; align-items: center; }
+      .idea-grid { grid-template-columns: 1fr; }
       .manifesto { grid-template-columns: 1fr; }
       .founder-strip { flex-direction: column; text-align: center; }
       footer { flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -398,7 +497,11 @@
 
         <a href="https://app.serendy.co" class="product-card" target="_blank">
           <div>
-            <span class="product-emoji">🌙</span>
+            <img
+              src="https://wuirlyjwzbrtctbjdlir.supabase.co/storage/v1/object/public/publicbckt/denemeler/serendy.svg"
+              alt="Serendy icon"
+              class="product-icon"
+            />
             <div class="product-name">Serendy</div>
             <p class="product-tagline">
               <strong>Astrology journaling with AI.</strong><br>
@@ -419,7 +522,11 @@
 
         <a href="https://charter.72perseids.com" class="product-card" target="_blank">
           <div>
-            <span class="product-emoji">📊</span>
+            <img
+              src="https://wuirlyjwzbrtctbjdlir.supabase.co/storage/v1/object/public/publicbckt/denemeler/minimal-app-icon-for-data-visualization-app-chart-.png"
+              alt="Chart-Er icon"
+              class="product-icon"
+            />
             <div class="product-name">Chart-Er</div>
             <p class="product-tagline">
               <strong>CSV to publication-ready charts.</strong><br>
@@ -437,6 +544,51 @@
           </div>
         </a>
 
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="reveal">
+      <div class="section-label">Idea shelf</div>
+      <div class="idea-grid">
+        <div class="idea-card">
+          <div class="idea-card-head">
+            <div class="idea-card-title">In orbit</div>
+            <span class="idea-card-label">No link</span>
+          </div>
+          <div class="idea-list">
+            <div class="idea-item">
+              <div class="idea-item-name">Perseive</div>
+              <p>Mental health app grounded in schema therapy, built for clearer reflection and structured self-work.</p>
+            </div>
+            <div class="idea-item">
+              <div class="idea-item-name">PlannerOS</div>
+              <p>A vibe-coding companion that helps people plan apps properly before they start building.</p>
+            </div>
+            <div class="idea-item">
+              <div class="idea-item-name">ScrappyNews</div>
+              <p>A niche scraping tool focused on news blogs, built to track and structure targeted coverage fast.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="idea-card">
+          <div class="idea-card-head">
+            <div class="idea-card-title">Shipped on Lovable</div>
+            <span class="idea-card-label">Live</span>
+          </div>
+          <div class="idea-list">
+            <a href="https://tactics-tutor.lovable.app" class="idea-item" target="_blank">
+              <div class="idea-item-name">Tactics Tutor</div>
+              <p>A lightweight chess tactics app for quick drills and focused pattern practice.</p>
+            </a>
+            <a href="https://npcyapici.lovable.app" class="idea-item" target="_blank">
+              <div class="idea-item-name">NPC Yapici</div>
+              <p>A simple FRP companion app built to support roleplay sessions and character-driven interaction.</p>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
 
