@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>72perseids — Micro-App Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070d0d;
+      --bg2: #0b1414;
+      --bg3: #0e1a1a;
+      --border: #152424;
+      --text: #c8dede;
+      --muted: #5a8080;
+      --accent: #2dd4bf;
+      --accent2: #14b8a6;
+      --accent-glow: rgba(45, 212, 191, 0.15);
+      --accent-glow2: rgba(45, 212, 191, 0.06);
+      --white: #eaf4f4;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    .cursor {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring {
+      width: 28px; height: 28px;
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.5;
+    }
+
+    .glow-blob {
+      position: fixed; border-radius: 50%;
+      pointer-events: none; z-index: 0; filter: blur(90px);
+    }
+    .glow-blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(45,212,191,0.07) 0%, transparent 70%);
+      top: -120px; right: -120px;
+    }
+    .glow-blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(45,212,191,0.04) 0%, transparent 70%);
+      bottom: 200px; left: -150px;
+    }
+
+    canvas#stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* NAV */
+    nav {
+      padding: 36px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      opacity: 0; animation: fadeUp 0.8s ease 0.1s forwards;
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px; font-weight: 600;
+      color: var(--white); text-decoration: none; letter-spacing: 0.03em;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-link {
+      font-size: 10px; letter-spacing: 0.18em;
+      color: var(--muted); text-decoration: none;
+      text-transform: uppercase; transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--accent); }
+    .nav-link.cta {
+      color: var(--accent);
+      border: 1px solid rgba(45,212,191,0.3);
+      padding: 8px 18px; border-radius: 100px;
+      transition: background 0.2s;
+    }
+    .nav-link.cta:hover { background: var(--accent-glow); }
+
+    /* HERO */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 10px; letter-spacing: 0.22em;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 8vw, 92px);
+      font-weight: 700; line-height: 0.92;
+      color: var(--white); margin-bottom: 32px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+    .hero-title em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 13px; line-height: 1.9;
+      color: var(--muted); max-width: 500px;
+      margin: 0 auto 48px;
+      opacity: 0; animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 400; }
+    .hero-badges {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.8s ease 0.5s forwards;
+    }
+    .hero-badge {
+      font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 7px 16px; border-radius: 100px;
+    }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 72px 0; }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-size: 10px; letter-spacing: 0.22em;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 40px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* PRODUCTS — big cards */
+    .products { display: flex; flex-direction: column; gap: 24px; }
+
+    .product-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: center;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 40px;
+      text-decoration: none; color: inherit;
+      position: relative; overflow: hidden;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .product-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .product-card:hover { border-color: rgba(45,212,191,0.35); background: var(--bg3); }
+    .product-card:hover::before { opacity: 0.5; }
+
+    .product-emoji { font-size: 36px; margin-bottom: 16px; display: block; }
+    .product-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 700;
+      color: var(--white); margin-bottom: 10px; line-height: 1;
+    }
+    .product-tagline {
+      font-size: 12px; line-height: 1.8;
+      color: var(--muted); margin-bottom: 20px; max-width: 420px;
+    }
+    .product-tagline strong { color: var(--text); font-weight: 400; }
+    .product-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .product-tag {
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); background: rgba(45,212,191,0.07);
+      border: 1px solid rgba(45,212,191,0.2);
+      padding: 4px 12px; border-radius: 100px;
+    }
+    .product-cta {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+      flex-shrink: 0;
+    }
+    .product-url {
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .product-arrow {
+      width: 44px; height: 44px;
+      border: 1px solid rgba(45,212,191,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--accent);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .product-card:hover .product-arrow {
+      background: var(--accent-glow);
+      transform: translate(2px, -2px);
+    }
+
+    /* MANIFESTO / PHILOSOPHY */
+    .manifesto {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .manifesto-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px 24px;
+      transition: border-color 0.2s;
+    }
+    .manifesto-item:hover { border-color: rgba(45,212,191,0.25); }
+    .manifesto-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px; color: var(--accent);
+      margin-bottom: 12px; opacity: 0.6;
+    }
+    .manifesto-text {
+      font-size: 12px; line-height: 1.8; color: var(--text);
+    }
+
+    /* QUOTE */
+    .quote-block {
+      text-align: center; padding: 40px 0;
+    }
+    .quote-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 4vw, 38px);
+      font-style: italic; font-weight: 600;
+      color: var(--white); line-height: 1.3; margin-bottom: 16px;
+    }
+    .quote-sub {
+      font-size: 10px; letter-spacing: 0.2em;
+      color: var(--muted); text-transform: uppercase;
+    }
+
+    /* FOUNDER STRIP */
+    .founder-strip {
+      display: flex; align-items: center; gap: 28px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 28px;
+    }
+    .founder-photo {
+      width: 60px; height: 60px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .founder-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .founder-info { flex: 1; }
+    .founder-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 600; color: var(--white); margin-bottom: 4px;
+    }
+    .founder-bio { font-size: 11px; color: var(--muted); line-height: 1.7; }
+    .founder-link {
+      font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--accent); text-decoration: none;
+      border: 1px solid rgba(45,212,191,0.3);
+      padding: 8px 18px; border-radius: 100px;
+      white-space: nowrap;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .founder-link:hover { background: var(--accent-glow); }
+
+    /* CTA */
+    .cta-block { text-align: center; padding: 20px 0 60px; }
+    .cta-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 700; color: var(--white); margin-bottom: 16px; line-height: 1;
+    }
+    .cta-heading em { color: var(--accent); font-style: italic; }
+    .cta-sub { font-size: 12px; color: var(--muted); margin-bottom: 36px; }
+    .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--accent); color: #070d0d;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none; padding: 15px 30px; border-radius: 100px;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(45,212,191,0.25); }
+    .btn-secondary {
+      display: inline-flex; align-items: center;
+      color: var(--accent); font-family: 'DM Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none; padding: 15px 30px; border-radius: 100px;
+      border: 1px solid rgba(45,212,191,0.3);
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: var(--accent-glow); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 10px; color: var(--muted);
+    }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    footer a:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 24px; }
+
+    /* REVEAL */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* MOBILE */
+    @media (max-width: 680px) {
+      .product-card { grid-template-columns: 1fr; padding: 28px 24px; }
+      .product-cta { flex-direction: row; align-items: center; }
+      .manifesto { grid-template-columns: 1fr; }
+      .founder-strip { flex-direction: column; text-align: center; }
+      footer { flex-direction: column; align-items: flex-start; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <div class="glow-blob glow-blob-1"></div>
+  <div class="glow-blob glow-blob-2"></div>
+  <canvas id="stars"></canvas>
+
+  <div class="container">
+
+    <nav>
+      <a href="/" class="nav-logo">72perseids<span>.</span></a>
+      <div class="nav-links">
+        <a href="#products" class="nav-link">Products</a>
+        <a href="https://tugcekoseoglu.com" class="nav-link">Builder</a>
+        <a href="https://calendly.com/72perseid/30min" class="nav-link cta" target="_blank">Work with us</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-eyebrow">Micro-App Studio · Turkey 🌠</div>
+      <h1 class="hero-title">Small studio.<br><em>Real products.</em></h1>
+      <p class="hero-sub">
+        <strong>We build apps that ship, earn, and keep running.</strong><br>
+        No bloat. No agencies. No long timelines. Just focused tools that solve real problems.
+      </p>
+      <div class="hero-badges">
+        <span class="hero-badge">FlutterFlow</span>
+        <span class="hero-badge">n8n</span>
+        <span class="hero-badge">Supabase</span>
+        <span class="hero-badge">OpenAI</span>
+        <span class="hero-badge">Firebase</span>
+        <span class="hero-badge">Bubble</span>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section id="products" class="reveal">
+      <div class="section-label">Products</div>
+      <div class="products">
+
+        <a href="https://app.serendy.co" class="product-card" target="_blank">
+          <div>
+            <span class="product-emoji">🌙</span>
+            <div class="product-name">Serendy</div>
+            <p class="product-tagline">
+              <strong>Astrology journaling with AI.</strong><br>
+              Journal your life — astrology makes sense of it. Daily entries, transits, and AI insights that actually connect to what you're going through.
+            </p>
+            <div class="product-tags">
+              <span class="product-tag">Live</span>
+              <span class="product-tag">FlutterFlow</span>
+              <span class="product-tag">OpenAI</span>
+              <span class="product-tag">Supabase</span>
+            </div>
+          </div>
+          <div class="product-cta">
+            <span class="product-url">app.serendy.co</span>
+            <div class="product-arrow">↗</div>
+          </div>
+        </a>
+
+        <a href="https://charter.72perseids.com" class="product-card" target="_blank">
+          <div>
+            <span class="product-emoji">📊</span>
+            <div class="product-name">Chart-Er</div>
+            <p class="product-tagline">
+              <strong>CSV to publication-ready charts.</strong><br>
+              No code, no Excel hell, no cleanup. Drop your data in, get a chart out. Built for people who need results, not tools.
+            </p>
+            <div class="product-tags">
+              <span class="product-tag">Live</span>
+              <span class="product-tag">n8n</span>
+              <span class="product-tag">Bubble</span>
+            </div>
+          </div>
+          <div class="product-cta">
+            <span class="product-url">charter.72perseids.com</span>
+            <div class="product-arrow">↗</div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="reveal">
+      <div class="section-label">How we build</div>
+      <div class="manifesto">
+        <div class="manifesto-item">
+          <div class="manifesto-num">01</div>
+          <div class="manifesto-text">Constraints are the spec. Tighter limits produce better systems — not more resources.</div>
+        </div>
+        <div class="manifesto-item">
+          <div class="manifesto-num">02</div>
+          <div class="manifesto-text">Execution is the only proof. Ideas are cheap. A working URL is not.</div>
+        </div>
+        <div class="manifesto-item">
+          <div class="manifesto-num">03</div>
+          <div class="manifesto-text">Small surface area, deep utility. One problem solved completely beats ten problems solved poorly.</div>
+        </div>
+        <div class="manifesto-item">
+          <div class="manifesto-num">04</div>
+          <div class="manifesto-text">Built globally from outside the center. Geographic constraints as strategic leverage, not excuses.</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="reveal">
+      <div class="quote-block">
+        <div class="quote-text">"The best systems are built by people who can't afford to fail."</div>
+        <div class="quote-sub">Constraints are the spec · Execution is the only proof</div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="reveal">
+      <div class="section-label">The builder</div>
+      <div class="founder-strip">
+        <div class="founder-photo">
+          <img src="https://wuirlyjwzbrtctbjdlir.supabase.co/storage/v1/object/public/publicbckt/denemeler/phil_cleaned_this.png" alt="Tuğçe Köseoğlu" />
+        </div>
+        <div class="founder-info">
+          <div class="founder-name">Tuğçe Köseoğlu</div>
+          <div class="founder-bio">Founder of 72perseids. No-code AI builder, solopreneur coach. Six years shipping products solo from Turkey. Biology BSc, Archaeology MA, Computer Programming Asc. Systems thinker who builds instead of just thinking.</div>
+        </div>
+        <a href="https://tugcekoseoglu.com" class="founder-link">Portfolio ↗</a>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <section class="cta-block reveal">
+      <h2 class="cta-heading">Have an <em>idea?</em></h2>
+      <p class="cta-sub">Decisive clients only. Let's build it fast.</p>
+      <div class="cta-buttons">
+        <a href="https://calendly.com/72perseid/30min" class="btn-primary" target="_blank">Book a call →</a>
+        <a href="mailto:72perseids@gmail.com" class="btn-secondary">Send an email</a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-left">72perseids · <a href="https://tugcekoseoglu.com">Built by Tuğçe</a></div>
+      <div class="footer-links">
+        <a href="https://tugcekoseoglu.com">Portfolio</a>
+        <a href="https://www.linkedin.com/in/tugce-koseoglu/" target="_blank">LinkedIn</a>
+        <a href="https://instagram.com/tugce.json" target="_blank">Instagram</a>
+        <a href="mailto:72perseids@gmail.com">Email</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+    (function animCursor() {
+      cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+      rx+=(mx-rx)*0.1; ry+=(my-ry)*0.1;
+      ring.style.left=rx+'px'; ring.style.top=ry+'px';
+      requestAnimationFrame(animCursor);
+    })();
+    document.querySelectorAll('a,button').forEach(el => {
+      el.addEventListener('mouseenter', () => { ring.style.width='44px'; ring.style.height='44px'; });
+      el.addEventListener('mouseleave', () => { ring.style.width='28px'; ring.style.height='28px'; });
+    });
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+
+    const stars = Array.from({length:130}, () => ({
+      x: Math.random()*window.innerWidth,
+      y: Math.random()*window.innerHeight,
+      r: Math.random()*1.1+0.2,
+      speed: Math.random()*0.003+0.001
+    }));
+    const meteors = [];
+    setInterval(() => {
+      meteors.push({
+        x: Math.random()*canvas.width*1.2, y: -10,
+        len: Math.random()*100+50,
+        speed: Math.random()*2+1.5,
+        opacity: Math.random()*0.3+0.1,
+        w: Math.random()*0.8+0.4
+      });
+    }, 3200);
+
+    let frame=0;
+    (function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      frame++;
+      stars.forEach(s => {
+        const o = 0.08 + 0.35*Math.abs(Math.sin(frame*s.speed));
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(45,212,191,${o})`;
+        ctx.fill();
+      });
+      for(let i=meteors.length-1;i>=0;i--) {
+        const m=meteors[i];
+        const g=ctx.createLinearGradient(m.x,m.y,m.x-m.len*0.6,m.y+m.len);
+        g.addColorStop(0,`rgba(45,212,191,${m.opacity})`);
+        g.addColorStop(1,'rgba(45,212,191,0)');
+        ctx.beginPath(); ctx.moveTo(m.x,m.y);
+        ctx.lineTo(m.x-m.len*0.6,m.y+m.len);
+        ctx.strokeStyle=g; ctx.lineWidth=m.w; ctx.stroke();
+        m.x-=m.speed*0.6; m.y+=m.speed;
+        if(m.y>canvas.height+50) meteors.splice(i,1);
+      }
+      requestAnimationFrame(draw);
+    })();
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+    }, {threshold:0.08});
+    document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+  </script>
+</body>
+</html>
